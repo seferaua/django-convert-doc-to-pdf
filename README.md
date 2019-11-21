@@ -13,7 +13,7 @@ Also you can convert .doc for Django model. Just pass the file from the request,
 
 - Install library
 
-`pip install djangoconvdoctopdf`
+`pip install djangoconvertvdoctopdf`
 
 Inside a code:
 
@@ -23,7 +23,7 @@ Input parameters for StreamingConvertedPdf:
     - If you want to receive the file after conversion, set: `download=True` by default.
     - if you want to get a view after conversion, set: `download=False`.
 
-`djangoconvdoctopdf.convertor import StreamingConvertedPdf`
+`djangoconvertvdoctopdf.convertor import StreamingConvertedPdf`
 
 ```python
 def custom_view(request):
@@ -38,7 +38,7 @@ def custom_view(request):
 Input parameters for ConvertFileModelField:
 - Required: `dock_obj`
 
-`djangoconvdoctopdf.convertor import ConvertFileModelField`
+`djangoconvertvdoctopdf.convertor import ConvertFileModelField`
 
 ```python
 from django.core.files import File
