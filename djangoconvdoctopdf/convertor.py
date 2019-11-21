@@ -5,23 +5,24 @@ from subprocess import  Popen
 from django.conf import settings
 from django.http import StreamingHttpResponse
 
-class ValidReceivedContent(object):
-
-    def __set__(self, instance, value):
-        if not value.name.split('.')[1] in ['doc', 'docm', 'docx']:
-            raise Exception('The input file must have one format from this: doc, docm, docx')
-        instance.__dict__['doc'] = value
-
-class StreamingConvertedPdf(object):
-
-    doc = ValidReceivedContent()
+class StreamingConvertedPdf:
 
     def __init__(self, dock_obj, download=True):
         self.doc = dock_obj
         self.download = download
-        self.tmp_path = settings.MEDIA_ROOT
+        self.tmp_path = settings.MEDIA_ROOT + 'tmp/'
+
+    def validate_document(self):
+        if not self.doc.name.split('.')[-1] in ('doc', 'docm', 'docx'):
+            raise Exception('The input file must have one format from this: doc, docm, docx')
+
+    def check_tmp_folder(self):
+        if not os.path.exists(self.tmp_path):
+            os.makedirs(self.tmp_path)
 
     def convert_to_pdf(self):
+        self.validate_document()
+        self.check_tmp_folder()
         with tempfile.NamedTemporaryFile(prefix=self.tmp_path) as tmp:
             tmp.write(self.doc.read())
             process = Popen(['lowriter', '--convert-to', 'pdf', tmp.name, '--outdir', self.tmp_path])
@@ -48,17 +49,9 @@ class StreamingConvertedPdf(object):
 
 class ConvertFileModelField(StreamingConvertedPdf):
 
-    def __init__(self, dock_obj, model, field_name, download=True):
-        super().__init__(dock_obj, download)
-        self.model = model
-        self.field_name = field_name
+    def get_content(self):
+        self.convert_to_pdf()
+        return {'path': self.tmp_path, 'name': self.get_file_name()}
 
     def stream_content(self):
         pass
-
-    def get_content(self):
-        self.convert_to_pdf()
-        custom_path = self.model._meta.get_field(self.field_name).upload_to
-        if custom_path:
-            self.tmp_path + custom_path
-        return {'path': self.tmp_path, 'name': self.get_file_name()}
